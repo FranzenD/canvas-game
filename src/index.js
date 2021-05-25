@@ -50,9 +50,12 @@ class Player {
       this.angle = 0;
       this.frameX = 0;
       this.frameY = 0;
+      this.frameXR = 3;
+      this.frameYR = 2;
       this.frame = 0;
       this.spriteWidth = 498;
       this.spriteHeight = 327;
+      this.staggerFrames = 5;
    }
 
    update() {
@@ -101,8 +104,8 @@ class Player {
       } else {
          ctx.drawImage(
             playerRight,
-            this.frameX * this.spriteWidth,
-            this.frameY * this.spriteHeight,
+            this.frameXR * this.spriteWidth,
+            this.frameYR * this.spriteHeight,
             this.spriteWidth,
             this.spriteHeight,
             0 - 60,
@@ -112,6 +115,23 @@ class Player {
          );
       }
       ctx.restore();
+
+      if (this.frame % this.staggerFrames == 0) {
+         this.frameX++;
+         this.frameXR--;
+         if (this.frameX == 4) {
+            this.frameY++;
+            this.frameYR--;
+            this.frameX = 0;
+            this.frameXR = 3;
+         }
+         if (this.frame % 12 == 0) {
+            this.frame = this.frameX = this.frameY = 0;
+            this.frameXR = 3;
+            this.frameYR = 2;
+         }
+      }
+      this.frame++;
    }
 }
 
