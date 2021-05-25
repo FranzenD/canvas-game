@@ -122,7 +122,7 @@ const bubblesArray = [];
 
 class Bubble {
    constructor() {
-      this.radius = 50;
+      this.radius = Math.max(Math.floor(Math.random() * 50), 30);
       this.x = Math.random() * canvas.width;
       this.y = canvas.height + this.radius * 2;
       this.speed = Math.random() * 5 + 1;
