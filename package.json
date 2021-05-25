@@ -1,0 +1,32 @@
+{
+   "name": "webpack-project",
+   "version": "1.0.0",
+   "description": "",
+   "main": "webpack.common.js",
+   "private": true,
+   "scripts": {
+      "build:prod": "webpack --config webpack.prod.js",
+      "build:dev": "webpack --config webpack.dev.js",
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "serve": "webpack serve --config webpack.dev.js --open"
+   },
+   "keywords": [],
+   "author": "Maxime Touroute",
+   "license": "ISC",
+   "devDependencies": {
+      "@babel/core": "^7.1.6",
+      "@babel/preset-env": "^7.1.6",
+      "babel-loader": "^8.2.2",
+      "clean-webpack-plugin": "^4.0.0-alpha.0",
+      "css-loader": "^5.2.5",
+      "file-loader": "^6.2.0",
+      "html-loader": "^2.1.2",
+      "html-webpack-plugin": "^5.3.1",
+      "style-loader": "^2.0.0",
+      "url-loader": "^1.1.2",
+      "webpack": "^5.37.1",
+      "webpack-cli": "^4.7.0",
+      "webpack-dev-server": "^3.11.2",
+      "webpack-merge": "^5.7.3"
+   }
+}
