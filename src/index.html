@@ -1,32 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
    <head>
       <meta charset="utf-8" />
-      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-      <meta
-         name="viewport"
-         content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"
-      />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>Fish game</title>
    </head>
-
    <body>
-      <audio id="myAudio">
-         <source src="sound/bubble_01.mp3" type="audio/mpeg" />
-         Your browser does not support the audio element.
-      </audio>
-
-      <button onclick="playAudio()" type="button">Play Audio</button>
-
       <h1>Fish game</h1>
-      <canvas id="canvas1"></canvas>
-
-      <script>
-         var x = document.getElementById('myAudio');
-
-         function playAudio() {
-            x.play();
-         }
-      </script>
+      <p>Score: <span id="score">0</span></p>
+      <canvas id="canvas1">Fish game requires canvas support.</canvas>
+      <button id="sound" type="button" aria-pressed="false">Sound</button>
+      <p id="sound-status" role="status"></p>
    </body>
 </html>

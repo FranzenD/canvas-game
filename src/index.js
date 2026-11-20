@@ -1,193 +1,128 @@
 import './style.css';
-import Sound1 from './sound/bubble_01.mp3';
-import Sound2 from './sound/bubble_02.mp3';
+import bubbleOne from './sound/bubble_01.mp3';
+import bubbleTwo from './sound/bubble_02.mp3';
 import fishLeft from './sprites/fish_red_swim_left.png';
 import fishRight from './sprites/fish_red_swim_right.png';
+import { WIDTH, HEIGHT, createGame, pointerPosition, updateGame } from './game.mjs';
 
-// Sound Setup
-const bubbleSound = document.createElement('audio');
-
-// Canvas setup
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
+const score = document.getElementById('score');
+const soundButton = document.getElementById('sound');
+const soundStatus = document.getElementById('sound-status');
+const game = createGame();
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
 
-canvas.width = 800;
-canvas.height = 500;
+let target = { x: game.player.x, y: game.player.y };
+let activePointer = null;
 
-let score = 0;
-let gameFrame = 0;
-ctx.font = '50px Georgia';
-
-// Mouse interactivity
-let canvasPosition = canvas.getBoundingClientRect();
-const mouse = {
-   x: canvas.width / 2,
-   y: canvas.height / 2,
-   click: false,
-};
-
-canvas.addEventListener('mousedown', event => {
-   mouse.click = true;
-   mouse.x = event.x - canvasPosition.left;
-   mouse.y = event.y - canvasPosition.top;
-});
-
-canvas.addEventListener('mouseup', () => {
-   mouse.click = false;
-});
-
-// Player
-const playerLeft = new Image();
-playerLeft.src = fishLeft;
-const playerRight = new Image();
-playerRight.src = fishRight;
-
-class Player {
-   constructor() {
-      this.x = canvas.height / 2;
-      this.y = canvas.width / 2;
-      this.radius = 45;
-      this.angle = 0;
-      this.frameX = 0;
-      this.frameY = 0;
-      this.frame = 0;
-      this.spriteWidth = 498;
-      this.spriteHeight = 327;
-   }
-
-   update() {
-      const dx = this.x - mouse.x;
-      const dy = this.y - mouse.y;
-      const theta = Math.atan2(dy, dx);
-      this.angle = theta;
-      if (mouse.x != this.x) {
-         this.x -= dx / 20;
-      }
-
-      if (mouse.y != this.y) {
-         this.y -= dy / 20;
-      }
-   }
-
-   draw() {
-      if (mouse.click) {
-         ctx.lineWidth = 0.2;
-         ctx.beginPath();
-         ctx.moveTo(this.x, this.y);
-         ctx.lineTo(mouse.x, mouse.y);
-         ctx.stroke();
-      }
-      // ctx.fillStyle = 'red';
-      // ctx.beginPath();
-      // ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      // ctx.fill();
-      // ctx.closePath();
-
-      ctx.save();
-      ctx.translate(this.x, this.y);
-      ctx.rotate(this.angle);
-      if (this.x >= mouse.x) {
-         ctx.drawImage(
-            playerLeft,
-            this.frameX * this.spriteWidth,
-            this.frameY * this.spriteHeight,
-            this.spriteWidth,
-            this.spriteHeight,
-            0 - 60,
-            0 - 45,
-            this.spriteWidth / 4,
-            this.spriteHeight / 4
-         );
-      } else {
-         ctx.drawImage(
-            playerRight,
-            this.frameX * this.spriteWidth,
-            this.frameY * this.spriteHeight,
-            this.spriteWidth,
-            this.spriteHeight,
-            0 - 60,
-            0 - 40,
-            this.spriteWidth / 4,
-            this.spriteHeight / 4
-         );
-      }
-      ctx.restore();
-   }
+function aim(event) {
+   target = pointerPosition(event.clientX, event.clientY, canvas.getBoundingClientRect());
 }
 
-const player = new Player();
+canvas.addEventListener('pointerdown', event => {
+   if (activePointer !== null || event.button !== 0) return;
+   activePointer = event.pointerId;
+   canvas.setPointerCapture(event.pointerId);
+   aim(event);
+});
 
-// Bubbles
-const bubblesArray = [];
+canvas.addEventListener('pointermove', event => {
+   if (event.pointerId === activePointer) aim(event);
+});
 
-class Bubble {
-   constructor() {
-      this.radius = Math.max(Math.floor(Math.random() * 50), 30);
-      this.x = Math.random() * canvas.width;
-      this.y = canvas.height + this.radius * 2;
-      this.speed = Math.random() * 5 + 1;
-      this.distance;
-      this.counted = false;
-      this.sound = Math.random() <= 0.5 ? 'sound1' : 'sound2';
+function endPointer(event) {
+   if (event.pointerId === activePointer) activePointer = null;
+}
+
+for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+   canvas.addEventListener(type, endPointer);
+}
+
+let audio;
+let effects;
+let soundEnabled = false;
+
+soundButton.addEventListener('click', async () => {
+   soundEnabled = !soundEnabled;
+   soundButton.setAttribute('aria-pressed', String(soundEnabled));
+   if (!soundEnabled) return;
+
+   soundButton.disabled = true;
+   soundStatus.textContent = '';
+   try {
+      audio ??= new AudioContext();
+      await audio.resume();
+      effects ??= await Promise.all([bubbleOne, bubbleTwo].map(async url => {
+         const response = await fetch(url);
+         if (!response.ok) throw new Error('Could not load bubble sound');
+         return audio.decodeAudioData(await response.arrayBuffer());
+      }));
+   } catch {
+      soundEnabled = false;
+      soundButton.setAttribute('aria-pressed', 'false');
+      soundStatus.textContent = 'Sound could not be enabled.';
+   } finally {
+      soundButton.disabled = false;
    }
-   update() {
-      this.y -= this.speed;
-      const dx = this.x - player.x;
-      const dy = this.y - player.y;
-      this.distance = Math.sqrt(dx * dx + dy * dy);
-   }
-   draw() {
-      ctx.fillStyle = 'blue';
+});
+
+function playSound(index) {
+   if (!soundEnabled || !effects || audio.state !== 'running') return;
+   const source = audio.createBufferSource();
+   source.buffer = effects[index];
+   source.connect(audio.destination);
+   source.start();
+}
+
+const leftSprite = new Image();
+leftSprite.src = fishLeft;
+const rightSprite = new Image();
+rightSprite.src = fishRight;
+
+function drawPlayer() {
+   const { player } = game;
+   if (activePointer !== null) {
+      ctx.lineWidth = 0.2;
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.closePath();
+      ctx.moveTo(player.x, player.y);
+      ctx.lineTo(target.x, target.y);
       ctx.stroke();
    }
+
+   const sprite = player.facingLeft ? leftSprite : rightSprite;
+   if (!sprite.naturalWidth) return;
+   ctx.save();
+   ctx.translate(player.x, player.y);
+   ctx.rotate(player.angle);
+   ctx.drawImage(sprite, 0, 0, 498, 327, -60, player.facingLeft ? -45 : -40, 498 / 4, 327 / 4);
+   ctx.restore();
 }
 
-function handleBubbles() {
-   if (gameFrame % 50 === 0) {
-      bubblesArray.push(new Bubble());
+let lastTime;
+
+function animate(time) {
+   const seconds = Math.min((time - (lastTime ?? time)) / 1000, 0.05);
+   lastTime = time;
+   const hits = updateGame(game, target, seconds);
+   hits.forEach(playSound);
+   if (hits.length) score.textContent = game.score;
+
+   ctx.clearRect(0, 0, WIDTH, HEIGHT);
+   ctx.fillStyle = 'blue';
+   for (const bubble of game.bubbles) {
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(bubble.x, bubble.y, bubble.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
    }
-
-   bubblesArray.forEach(bubble => {
-      bubble.update();
-      bubble.draw();
-   });
-
-   bubblesArray.forEach(bubble => {
-      if (bubble.y < 0 - bubble.radius * 2) {
-         const index = bubblesArray.indexOf(bubble);
-         bubblesArray.splice(index, 1);
-      } else if (bubble.distance < bubble.radius + player.radius) {
-         if (!bubble.counted) {
-            if (bubble.sound == 'sound1') {
-               bubbleSound.src = Sound1;
-               bubbleSound.play();
-            } else {
-               bubbleSound.src = Sound2;
-               bubbleSound.play();
-            }
-            score++;
-            bubble.counted = true;
-            const index = bubblesArray.indexOf(bubble);
-            bubblesArray.splice(index, 1);
-         }
-      }
-   });
-}
-// Animation loop
-
-function animate() {
-   ctx.clearRect(0, 0, canvas.width, canvas.height);
-   handleBubbles();
-   player.update();
-   player.draw();
-   ctx.fillStyle = 'black';
-   ctx.fillText('score: ' + score, 10, 50);
-   gameFrame++;
+   drawPlayer();
    requestAnimationFrame(animate);
 }
 
-animate();
+document.addEventListener('visibilitychange', () => {
+   lastTime = undefined;
+});
+requestAnimationFrame(animate);

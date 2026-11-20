@@ -1,20 +1,13 @@
+# Fish game
 
+Guide the fish into bubbles to score points. Click or tap a destination, or hold and drag to change it. Use the **Sound** button to turn bubble effects on or off.
 
-### Summary
+## Run locally
 
-A webpack template for the most basic vanillaJS webapp.
+Use Node.js 22 or newer.
 
-* Bundles js (with babel transpilation)
-* Bundles all kind of assets (css,images,...)
-* generates an index.html based on the template provided "src/index.html"
-* development and production build scripts
-
-### Set-up
-
-* `npm install`
-* `npm start` for build and dev server
-* `npm run build:dev` for development build
-* `npm run build:prod` for production build
-
-### TODO
-better minify
+- `npm ci` installs the locked dependencies.
+- `npm run serve` opens the development server at http://localhost:3004.
+- `npm test` runs the game logic tests.
+- `npm run build:dev` creates a development build in `dist/`.
+- `npm run build:prod` creates the production build in `dist/`. Serve this directory to publish the game.
