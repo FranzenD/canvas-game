@@ -11,13 +11,6 @@ export function createGame() {
    };
 }
 
-export function pointerPosition(clientX, clientY, rect) {
-   return {
-      x: Math.max(0, Math.min(WIDTH, (clientX - rect.left) * WIDTH / rect.width)),
-      y: Math.max(0, Math.min(HEIGHT, (clientY - rect.top) * HEIGHT / rect.height)),
-   };
-}
-
 function createBubble() {
    const radius = Math.max(Math.floor(Math.random() * 50), 30);
    return {

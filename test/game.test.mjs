@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { BUBBLE_INTERVAL, createGame, pointerPosition, updateGame } from '../src/game.mjs';
+import { BUBBLE_INTERVAL, createGame, updateGame } from '../src/game.mjs';
+import { pointerPosition } from '../src/pointer.mjs';
 
 test('the fish starts at the center', () => {
    const { player } = createGame();
